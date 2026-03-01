@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3d1f0a">
+<title>Babamın Kitaplığı</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#f5ede0; --card:#fff8ef; --border:#e8d5b7;
+  --l1:#5c3010; --l2:#7a4520; --gold:#c8861a; --gold2:#e8a830;
+  --txt:#1e0e00; --txt2:#7a5535;
+  --tab:64px; --hdr:60px; --r:16px;
+  --sh:0 2px 16px rgba(90,50,10,.13);
+}
+[data-dark]{
+  --bg:#160c04; --card:#1e1106; --border:#3a2010;
+  --l1:#c8861a; --l2:#e8a830; --gold:#e8a830; --gold2:#f5c85a;
+  --txt:#f5ede0; --txt2:#c8a87a;
+  --sh:0 2px 16px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-height:100dvh;overscroll-behavior:none;}
+
+/* HEADER */
+.hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr);background:var(--l1);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.logo{font-family:'Playfair Display',serif;color:#fff;font-size:1.1rem;font-style:italic;}
+.logo small{display:block;font-family:'Nunito',sans-serif;font-style:normal;font-size:.62rem;opacity:.65;letter-spacing:.1em;text-transform:uppercase;}
+.hdr-r{display:flex;gap:.4rem;align-items:center;}
+.lv-pill{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1e0e00;border-radius:20px;padding:.3rem .65rem;font-size:.75rem;font-weight:700;white-space:nowrap;}
+.hbtn{background:rgba(255,255,255,.12);border:none;border-radius:10px;color:#fff;width:40px;height:40px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.yr-sel{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:.3rem .5rem;font-family:'Nunito',sans-serif;font-size:.82rem;outline:none;height:40px;}
+.yr-sel option{background:#5c3010;}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:var(--tab);background:var(--l1);display:flex;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,.25);padding-bottom:env(safe-area-inset-bottom);}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;gap:.18rem;padding:.5rem 0;font-family:'Nunito',sans-serif;min-height:44px;transition:color .15s;}
+.ni .ic{font-size:1.3rem;line-height:1;}
+.ni .lb{font-size:.6rem;font-weight:700;letter-spacing:.02em;}
+.ni.on{color:var(--gold2);}
+.ni.on .ic{transform:scale(1.12);}
+
+/* PAGES */
+.pg{display:none;position:fixed;inset:0;padding-top:var(--hdr);padding-bottom:calc(var(--tab) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.pg.on{display:block;animation:suUp .25s ease;}
+@keyframes suUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pi{padding:1rem;max-width:620px;margin:0 auto;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--l1) 0%,var(--l2) 100%);border-radius:var(--r);padding:1.4rem;color:#fff;margin-bottom:1rem;position:relative;overflow:hidden;}
+.hero::after{content:'📚';position:absolute;right:1rem;top:50%;transform:translateY(-50%);font-size:4rem;opacity:.12;pointer-events:none;}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.25rem;margin-bottom:.2rem;}
+.hero p{font-size:.88rem;opacity:.8;margin-bottom:.9rem;}
+.exp-lbl{display:flex;justify-content:space-between;font-size:.76rem;opacity:.8;margin-bottom:.3rem;}
+.exp-bar{background:rgba(255,255,255,.2);border-radius:20px;height:9px;overflow:hidden;}
+.exp-fill{background:linear-gradient(90deg,var(--gold),var(--gold2));height:100%;border-radius:20px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+/* STATS */
+.srow{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1rem;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:.9rem .7rem;text-align:center;box-shadow:var(--sh);}
+.sn{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--l2);line-height:1;margin-bottom:.15rem;}
+[data-dark] .sn{color:var(--gold2);}
+.sl{font-size:.72rem;color:var(--txt2);font-weight:700;}
+.sec{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--l2);margin-bottom:.7rem;display:flex;align-items:center;gap:.35rem;}
+[data-dark] .sec{color:var(--gold2);}
+
+/* BOOK CARD */
+.blist{display:flex;flex-direction:column;gap:.7rem;}
+.bc{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:var(--r);padding:1rem;box-shadow:var(--sh);}
+.gt{display:inline-block;background:var(--border);color:var(--txt2);padding:.12rem .5rem;border-radius:20px;font-size:.7rem;font-weight:700;margin-bottom:.35rem;}
+.bc h3{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.12rem;line-height:1.3;}
+.bc .au{font-size:.82rem;color:var(--txt2);font-style:italic;margin-bottom:.45rem;}
+.bc .mt{font-size:.78rem;color:var(--txt2);display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;}
+.st{color:var(--gold);font-size:.9rem;}
+.ca{display:flex;gap:.5rem;margin-top:.7rem;}
+.cb{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem;font-size:.8rem;cursor:pointer;color:var(--txt2);font-family:'Nunito',sans-serif;font-weight:700;min-height:42px;transition:background .15s;}
+.cb:active{background:var(--border);}
+.cb.del{color:#c0392b;}
+.bn{font-size:.78rem;color:var(--txt2);font-style:italic;margin-top:.45rem;padding-top:.45rem;border-top:1px solid var(--border);line-height:1.5;}
+
+/* FORM */
+.fw{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;box-shadow:var(--sh);}
+.fg{margin-bottom:.9rem;}
+.fl{display:block;font-size:.8rem;color:var(--txt2);font-weight:700;margin-bottom:.35rem;letter-spacing:.03em;}
+.fi{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:.72rem .9rem;font-family:'Nunito',sans-serif;font-size:1rem;color:var(--txt);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none;min-height:48px;}
+.fi:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,134,26,.15);}
+textarea.fi{min-height:85px;resize:vertical;}
+select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.sw{display:flex;gap:.3rem;flex-direction:row-reverse;justify-content:flex-end;}
+.sw input{display:none;}
+.sw label{font-size:2rem;cursor:pointer;color:var(--border);transition:color .1s;padding:.15rem;}
+.sw input:checked ~ label,.sw label:hover,.sw label:hover ~ label{color:var(--gold);}
+.sbtn{width:100%;background:linear-gradient(135deg,var(--l1),var(--l2));color:#fff;border:none;border-radius:14px;padding:.95rem;font-family:'Playfair Display',serif;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 14px rgba(92,48,16,.35);min-height:54px;margin-top:.4rem;transition:transform .15s;}
+.sbtn:active{transform:scale(.98);}
+
+/* SEARCH */
+.sb{position:relative;margin-bottom:.7rem;}
+.sb input{padding-left:2.4rem;}
+.si{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);font-size:.95rem;pointer-events:none;}
+.fr2{display:flex;gap:.5rem;margin-bottom:1rem;overflow-x:auto;padding-bottom:.2rem;-webkit-overflow-scrolling:touch;}
+.fr2 select{flex-shrink:0;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:.5rem .8rem;font-family:'Nunito',sans-serif;font-size:.82rem;color:var(--txt);outline:none;min-height:42px;-webkit-appearance:none;}
+
+/* BADGES */
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.bdc{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:.9rem .7rem;text-align:center;}
+.bdc.ok{border-color:var(--gold);background:linear-gradient(135deg,var(--card),rgba(200,134,26,.07));box-shadow:0 4px 16px rgba(200,134,26,.18);}
+.bdc.lk{opacity:.4;filter:grayscale(1);}
+.be{font-size:2.1rem;display:block;margin-bottom:.35rem;}
+.bn2{font-family:'Playfair Display',serif;font-size:.82rem;color:var(--txt);margin-bottom:.2rem;line-height:1.3;}
+.bd{font-size:.7rem;color:var(--txt2);}
+
+/* CHART */
+.cb2{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1rem;box-shadow:var(--sh);margin-bottom:1rem;}
+
+/* EMPTY */
+.em{text-align:center;padding:2.5rem 1rem;color:var(--txt2);opacity:.7;}
+.em .ei{font-size:2.8rem;display:block;margin-bottom:.8rem;}
+
+/* MODAL */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+.ov.on{display:flex;}
+.mo{background:var(--card);border-radius:24px;padding:2rem 1.5rem;text-align:center;width:100%;max-width:320px;animation:pop .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.35);}
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.me{font-size:3.8rem;display:block;margin-bottom:.7rem;}
+.mt2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--l2);margin-bottom:.35rem;}
+[data-dark] .mt2{color:var(--gold2);}
+.mm{color:var(--txt2);margin-bottom:1.4rem;font-size:.95rem;}
+.mbtn{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;padding:.8rem 2rem;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;color:#1e0e00;min-height:48px;width:100%;}
+
+/* CONFETTI */
+.cnf{position:fixed;pointer-events:none;z-index:9999;animation:cf 2s ease-in forwards;}
+@keyframes cf{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
+::-webkit-scrollbar{display:none;}
+*{scrollbar-width:none;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">Babamın Kitaplığı<small>📖 Okuma Günlüğü</small></div>
+  <div class="hdr-r">
+    <span class="lv-pill" id="lvp">Lv.1</span>
+    <select class="yr-sel" id="yrSel" onchange="chYear()"></select>
+    <button class="hbtn" onclick="togDark()" id="darkBtn">🌙</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="pg on" id="pg-home">
+  <div class="pi">
+    <div class="hero">
+      <h1 id="heroTit">Merhaba, Okuyucu! 👋</h1>
+      <p id="heroSub">Bu yılki okuma yolculuğuna hoş geldin.</p>
+      <div class="exp-lbl"><span id="expTxt">0 / 100 Deneyim</span><span id="lvLbl">Seviye 1</span></div>
+      <div class="exp-bar"><div class="exp-fill" id="expFill" style="width:0%"></div></div>
+    </div>
+    <div class="srow">
+      <div class="sc"><div class="sn" id="sB">0</div><div class="sl">📚 Kitap</div></div>
+      <div class="sc"><div class="sn" id="sP">0</div><div class="sl">📄 Sayfa</div></div>
+      <div class="sc"><div class="sn" id="sE">0</div><div class="sl">⭐ Deneyim</div></div>
+      <div class="sc"><div class="sn" id="sA">0</div><div class="sl">📊 Ort. Sayfa</div></div>
+    </div>
+    <div class="sec">📖 Son Kitaplar</div>
+    <div class="blist" id="homeList"></div>
+    <div class="em" id="emHome"><span class="ei">📚</span>Henüz kitap eklenmedi.<br>Hadi ilk kitabını ekle!</div>
+  </div>
+</div>
+
+<!-- ADD -->
+<div class="pg" id="pg-add">
+  <div class="pi">
+    <div class="sec" style="margin-bottom:.7rem">✍️ Kitap Ekle</div>
+    <div class="fw">
+      <div class="fg">
+        <label class="fl">Kitap Adı *</label>
+        <input class="fi" id="fTit" type="text" placeholder="Kitabın adını yaz..." autocomplete="off">
+      </div>
+      <div class="fg">
+        <label class="fl">Yazar *</label>
+        <input class="fi" id="fAut" type="text" placeholder="Yazarın adı..." autocomplete="off">
+      </div>
+      <div class="fr">
+        <div class="fg">
+          <label class="fl">Sayfa Sayısı *</label>
+          <input class="fi" id="fPg" type="number" placeholder="0" min="1" inputmode="numeric">
+        </div>
+        <div class="fg">
+          <label class="fl">Tür</label>
+          <select class="fi" id="fGn">
+            <option value="">Seç...</option>
+            <option>Roman</option><option>Tarih</option><option>Bilim</option>
+            <option>Felsefe</option><option>Biyografi</option><option>Din & Maneviyat</option>
+            <option>Kişisel Gelişim</option><option>Polisiye</option><option>Şiir</option><option>Diğer</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Puan (opsiyonel)</label>
+        <div class="sw">
+          <input type="radio" name="rat" id="r5" value="5"><label for="r5">★</label>
+          <input type="radio" name="rat" id="r4" value="4"><label for="r4">★</label>
+          <input type="radio" name="rat" id="r3" value="3"><label for="r3">★</label>
+          <input type="radio" name="rat" id="r2" value="2"><label for="r2">★</label>
+          <input type="radio" name="rat" id="r1" value="1"><label for="r1">★</label>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Başlangıç</label><input class="fi" id="fSt" type="date"></div>
+        <div class="fg"><label class="fl">Bitiş</label><input class="fi" id="fEn" type="date"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Notlar / Düşünceler</label>
+        <textarea class="fi" id="fNo" placeholder="Bu kitap hakkında düşüncelerini yaz..."></textarea>
+      </div>
+      <input type="hidden" id="eid">
+      <button class="sbtn" id="svBtn" onclick="saveBook()">📚 Kitabı Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<div class="pg" id="pg-lib">
+  <div class="pi">
+    <div class="sb">
+      <span class="si">🔍</span>
+      <input class="fi" id="srQ" type="search" placeholder="Kitap veya yazar ara..." oninput="renderLib()" autocomplete="off">
+    </div>
+    <div class="fr2">
+      <select id="fGnF" onchange="renderLib()">
+        <option value="">Tüm Türler</option>
+        <option>Roman</option><option>Tarih</option><option>Bilim</option>
+        <option>Felsefe</option><option>Biyografi</option><option>Din & Maneviyat</option>
+        <option>Kişisel Gelişim</option><option>Polisiye</option><option>Şiir</option><option>Diğer</option>
+      </select>
+      <select id="fSo" onchange="renderLib()">
+        <option value="newest">En Yeni</option>
+        <option value="oldest">En Eski</option>
+        <option value="pages">En Uzun</option>
+        <option value="rating">En İyi Puan</option>
+      </select>
+    </div>
+    <div class="blist" id="libList"></div>
+    <div class="em" id="emLib" style="display:none"><span class="ei">🔍</span>Sonuç bulunamadı.</div>
+  </div>
+</div>
+
+<!-- BADGES -->
+<div class="pg" id="pg-bdg">
+  <div class="pi">
+    <div class="sec">🏆 Başarımlar</div>
+    <div class="bgrid" id="bdgGrid"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="pg" id="pg-st">
+  <div class="pi">
+    <div class="cb2"><div class="sec">📊 Aylık Kitap Sayısı</div><canvas id="mCh"></canvas></div>
+    <div class="cb2"><div class="sec">📚 Tür Dağılımı</div><canvas id="gCh"></canvas></div>
+    <div class="srow">
+      <div class="sc"><div class="sn" style="font-size:1.2rem" id="xL">-</div><div class="sl">📖 En Uzun Kitap</div></div>
+      <div class="sc"><div class="sn" style="font-size:1.2rem" id="xS">-</div><div class="sl">📄 En Kısa Kitap</div></div>
+      <div class="sc"><div class="sn" style="font-size:1rem" id="xG">-</div><div class="sl">🏷️ En Çok Okunan</div></div>
+      <div class="sc"><div class="sn" style="font-size:1rem" id="xSG">-</div><div class="sl">⭐ En Sevilen Tür</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="ni on" onclick="goPg('home',this)"><span class="ic">🏠</span><span class="lb">Ana Sayfa</span></button>
+  <button class="ni" onclick="goPg('add',this)"><span class="ic">➕</span><span class="lb">Ekle</span></button>
+  <button class="ni" onclick="goPg('lib',this)"><span class="ic">📚</span><span class="lb">Kütüphane</span></button>
+  <button class="ni" onclick="goPg('bdg',this)"><span class="ic">🏆</span><span class="lb">Başarımlar</span></button>
+  <button class="ni" onclick="goPg('st',this)"><span class="ic">📊</span><span class="lb">İstatistik</span></button>
+</nav>
+
+<!-- MODAL -->
+<div class="ov" id="ov" onclick="closeMo()">
+  <div class="mo" onclick="event.stopPropagation()">
+    <span class="me" id="mEm">🎉</span>
+    <div class="mt2" id="mTit">Tebrikler!</div>
+    <div class="mm" id="mMsg">Harika bir başarı!</div>
+    <button class="mbtn" onclick="closeMo()">Süper! ✨</button>
+  </div>
+</div>
+
+<script>
+const LEVELS=[
+  {min:0,   name:'Meraklı Okuyucu', short:'Meraklı'},
+  {min:101, name:'Kitap Kurdu',      short:'Kitap Kurdu'},
+  {min:301, name:'Bilge',            short:'Bilge'},
+  {min:601, name:'Büyük Üstad',      short:'Üstad'},
+  {min:1001,name:'Efsanevi Okuyucu', short:'Efsane'},
+];
+const PAGE_MS=[
+  {k:'p100', pages:100,   em:'📖', name:'İlk Adım!',              desc:'100 sayfa okudun!'},
+  {k:'p500', pages:500,   em:'📚', name:'Okuma Ateşi!',           desc:'500 sayfa okudun!'},
+  {k:'p1k',  pages:1000,  em:'🔥', name:'Bin Sayfa Ustası!',      desc:'1000 sayfa okudun!'},
+  {k:'p25',  pages:2500,  em:'🏆', name:'Sayfa Avcısı!',          desc:'2500 sayfa okudun!'},
+  {k:'p5k',  pages:5000,  em:'👑', name:'Efsane Okuyucu!',        desc:'5000 sayfa okudun!'},
+  {k:'p10k', pages:10000, em:'🌟', name:'10.000 Sayfa Efsanesi!', desc:'10.000 sayfa okudun!'},
+];
+const BOOK_MS=[
+  {k:'b1', count:1,  em:'🌱', name:'İlk Kitabım!',         desc:'İlk kitabını ekledin!'},
+  {k:'b5', count:5,  em:'📗', name:'Seri Okuyucu!',         desc:'5 kitap okudun!'},
+  {k:'b10',count:10, em:'📘', name:'Çift Haneli!',          desc:'10 kitap okudun!'},
+  {k:'b25',count:25, em:'📕', name:'Koleksiyoncu!',         desc:'25 kitap okudun!'},
+  {k:'b52',count:52, em:'🎯', name:'Haftada Bir Kitap!',    desc:'52 kitap okudun!'},
+];
+const GC={'Roman':'#8b5e3c','Tarih':'#5c7a4e','Bilim':'#3a6b8a','Felsefe':'#7a4e8b','Biyografi':'#8a6b3a','Din & Maneviyat':'#6b8a5c','Kişisel Gelişim':'#8a5c6b','Polisiye':'#4e5c7a','Şiir':'#8a7a4e','Diğer':'#6b6b6b','':'#a0724a'};
+const MN=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+
+let cy=new Date().getFullYear(), db={}, Q=[], mCI=null, gCI=null;
+
+const ld=()=>{try{db=JSON.parse(localStorage.getItem('bk')||'{}')}catch(e){db={}}};
+const sv=()=>localStorage.setItem('bk',JSON.stringify(db));
+const yr=()=>{if(!db[cy])db[cy]={books:[],badges:[]};return db[cy];};
+const books=()=>yr().books;
+const earned=()=>yr().badges;
+const calcExp=bs=>bs.reduce((s,b)=>s+10+Math.floor(b.pages/10),0);
+const getLvi=exp=>{let i=0;LEVELS.forEach((l,j)=>{if(exp>=l.min)i=j;});return i;};
+
+// NAV
+function goPg(id,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='lib')renderLib();
+  else if(id==='bdg')renderBdg();
+  else if(id==='st')renderSt();
+  else if(id==='home')renderHome();
+}
+
+// YEAR
+function initYr(){
+  const s=document.getElementById('yrSel');s.innerHTML='';
+  for(let y=2027;y>=2023;y--){const o=document.createElement('option');o.value=y;o.textContent=y;if(y===cy)o.selected=true;s.appendChild(o);}
+}
+function chYear(){cy=parseInt(document.getElementById('yrSel').value);renderHome();}
+
+// SAVE BOOK
+function saveBook(){
+  const t=document.getElementById('fTit').value.trim();
+  const a=document.getElementById('fAut').value.trim();
+  const p=parseInt(document.getElementById('fPg').value)||0;
+  if(!t||!a||!p){alert('Kitap adı, yazar ve sayfa sayısı zorunludur!');return;}
+  const ratEl=document.querySelector('input[name="rat"]:checked');
+  const eid=document.getElementById('eid').value;
+  const book={id:eid||Date.now()+'',title:t,author:a,pages:p,
+    genre:document.getElementById('fGn').value,rating:ratEl?parseInt(ratEl.value):0,
+    start:document.getElementById('fSt').value,end:document.getElementById('fEn').value,
+    notes:document.getElementById('fNo').value.trim(),at:Date.now()};
+  const y=yr();
+  if(eid){const i=y.books.findIndex(b=>b.id===eid);if(i>=0)y.books[i]=book;}
+  else{y.books.push(book);checkMs(y);}
+  sv();resetForm();renderHome();
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-home').classList.add('on');
+  document.querySelector('.ni').classList.add('on');
+  showQ();
+}
+
+function checkMs(y){
+  const tot=y.books.reduce((s,b)=>s+b.pages,0),cnt=y.books.length,e=y.badges;
+  PAGE_MS.forEach(m=>{if(tot>=m.pages&&!e.includes(m.k)){e.push(m.k);Q.push(m);}});
+  BOOK_MS.forEach(m=>{if(cnt>=m.count&&!e.includes(m.k)){e.push(m.k);Q.push(m);}});
+  const li=getLvi(calcExp(y.books)),lk='lv'+li;
+  if(li>0&&!e.includes(lk)){e.push(lk);Q.push({em:'⭐',name:'Yeni Seviye!',desc:LEVELS[li].name+' oldun!'});}
+}
+
+function showQ(){
+  if(!Q.length)return;
+  const m=Q.shift();confetti();
+  document.getElementById('mEm').textContent=m.em||m.emoji||'🎉';
+  document.getElementById('mTit').textContent=m.name;
+  document.getElementById('mMsg').textContent=m.desc;
+  document.getElementById('ov').classList.add('on');
+}
+function closeMo(){document.getElementById('ov').classList.remove('on');setTimeout(showQ,300);}
+
+function editBook(id){
+  const b=books().find(b=>b.id===id);if(!b)return;
+  document.getElementById('fTit').value=b.title;
+  document.getElementById('fAut').value=b.author;
+  document.getElementById('fPg').value=b.pages;
+  document.getElementById('fGn').value=b.genre||'';
+  document.getElementById('fSt').value=b.start||'';
+  document.getElementById('fEn').value=b.end||'';
+  document.getElementById('fNo').value=b.notes||'';
+  document.getElementById('eid').value=b.id;
+  if(b.rating){const r=document.getElementById('r'+b.rating);if(r)r.checked=true;}
+  document.getElementById('svBtn').textContent='✏️ Güncelle';
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-add').classList.add('on');
+  document.querySelectorAll('.ni')[1].classList.add('on');
+}
+
+function delBook(id){
+  if(!confirm('Bu kitabı silmek istediğine emin misin?'))return;
+  yr().books=yr().books.filter(b=>b.id!==id);sv();renderHome();renderLib();
+}
+
+function resetForm(){
+  ['fTit','fAut','fPg','fSt','fEn','fNo'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fGn').value='';
+  document.getElementById('eid').value='';
+  document.querySelectorAll('input[name="rat"]').forEach(r=>r.checked=false);
+  document.getElementById('svBtn').textContent='📚 Kitabı Kaydet';
+}
+
+// RENDER HOME
+function renderHome(){
+  const bs=books(),tot=bs.reduce((s,b)=>s+b.pages,0),exp=calcExp(bs),li=getLvi(exp);
+  const lv=LEVELS[li],nx=LEVELS[li+1],pct=nx?Math.min(100,((exp-lv.min)/(nx.min-lv.min))*100):100;
+  document.getElementById('sB').textContent=bs.length;
+  document.getElementById('sP').textContent=tot>=1000?(tot/1000).toFixed(1)+'B':tot;
+  document.getElementById('sE').textContent=exp;
+  document.getElementById('sA').textContent=bs.length?Math.round(tot/bs.length):0;
+  document.getElementById('expTxt').textContent=nx?`${exp} / ${nx.min} Deneyim`:`${exp} Deneyim (Maks!)`;
+  document.getElementById('lvLbl').textContent=`Seviye ${li+1} — ${lv.name}`;
+  document.getElementById('lvp').textContent=`Lv.${li+1} ${lv.short}`;
+  setTimeout(()=>document.getElementById('expFill').style.width=pct+'%',100);
+  const rec=[...bs].sort((a,b)=>b.at-a.at).slice(0,5);
+  const el=document.getElementById('homeList'),em=document.getElementById('emHome');
+  if(!bs.length){el.innerHTML='';em.style.display='block';}
+  else{em.style.display='none';el.innerHTML=rec.map(cHtml).join('');}
+}
+
+function cHtml(b){
+  const st='★'.repeat(b.rating)+'☆'.repeat(5-b.rating),c=GC[b.genre]||'#a0724a';
+  return `<div class="bc" style="border-left-color:${c}">
+    ${b.genre?`<span class="gt">${b.genre}</span>`:''}
+    <h3>${b.title}</h3>
+    <div class="au">${b.author}</div>
+    <div class="mt">
+      <span>📄 ${b.pages} sayfa</span>
+      ${b.rating?`<span class="st">${st}</span>`:''}
+      ${b.end?`<span>🗓️ ${b.end}</span>`:''}
+    </div>
+    ${b.notes?`<div class="bn">${b.notes.slice(0,100)}${b.notes.length>100?'...':''}</div>`:''}
+    <div class="ca">
+      <button class="cb" onclick="editBook('${b.id}')">✏️ Düzenle</button>
+      <button class="cb del" onclick="delBook('${b.id}')">🗑️ Sil</button>
+    </div>
+  </div>`;
+}
+
+// LIBRARY
+function renderLib(){
+  let bs=[...books()];
+  const q=(document.getElementById('srQ').value||'').toLowerCase();
+  const g=document.getElementById('fGnF').value,s=document.getElementById('fSo').value;
+  if(q)bs=bs.filter(b=>b.title.toLowerCase().includes(q)||b.author.toLowerCase().includes(q));
+  if(g)bs=bs.filter(b=>b.genre===g);
+  if(s==='newest')bs.sort((a,b)=>b.at-a.at);
+  else if(s==='oldest')bs.sort((a,b)=>a.at-b.at);
+  else if(s==='pages')bs.sort((a,b)=>b.pages-a.pages);
+  else if(s==='rating')bs.sort((a,b)=>b.rating-a.rating);
+  const el=document.getElementById('libList'),em=document.getElementById('emLib');
+  if(!bs.length){el.innerHTML='';em.style.display='block';}
+  else{em.style.display='none';el.innerHTML=bs.map(cHtml).join('');}
+}
+
+// BADGES
+function renderBdg(){
+  const e=earned();
+  const all=[
+    ...BOOK_MS.map(m=>({...m,ok:e.includes(m.k)})),
+    ...PAGE_MS.map(m=>({...m,ok:e.includes(m.k)})),
+    ...LEVELS.slice(1).map((lv,i)=>({em:'⭐',name:'Seviye '+(i+2),desc:lv.name+' oldun!',k:'lv'+(i+1),ok:e.includes('lv'+(i+1))}))
+  ];
+  document.getElementById('bdgGrid').innerHTML=all.map(b=>`
+    <div class="bdc ${b.ok?'ok':'lk'}">
+      <span class="be">${b.em||b.emoji}</span>
+      <div class="bn2">${b.name}</div>
+      <div class="bd">${b.desc}</div>
+    </div>`).join('');
+}
+
+// STATS
+function renderSt(){
+  const bs=books(),months=Array(12).fill(0),gmap={};
+  bs.forEach(b=>{const d=b.end||b.start;if(d){const m=parseInt(d.split('-')[1])-1;months[m]++;}if(b.genre)gmap[b.genre]=(gmap[b.genre]||0)+1;});
+  const dark=document.documentElement.hasAttribute('data-dark');
+  const gc=dark?'rgba(255,255,255,.08)':'rgba(0,0,0,.06)',tc=dark?'#c8a87a':'#5c3010';
+  if(mCI)mCI.destroy();
+  mCI=new Chart(document.getElementById('mCh'),{type:'bar',data:{labels:MN,datasets:[{label:'Kitap',data:months,backgroundColor:'rgba(200,134,26,.75)',borderColor:'#c8861a',borderWidth:2,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gc},ticks:{color:tc,stepSize:1}}}}});
+  if(gCI)gCI.destroy();
+  const gk=Object.keys(gmap);
+  if(gk.length)gCI=new Chart(document.getElementById('gCh'),{type:'doughnut',data:{labels:gk,datasets:[{data:gk.map(k=>gmap[k]),backgroundColor:gk.map(k=>GC[k]||'#a0724a'),borderWidth:2,borderColor:dark?'#1e1106':'#fff8ef'}]},options:{plugins:{legend:{labels:{color:tc,font:{size:11}}}}}});
+  if(bs.length){
+    const sr=[...bs].sort((a,b)=>b.pages-a.pages);
+    document.getElementById('xL').textContent=sr[0].pages+' sf';
+    document.getElementById('xS').textContent=sr[sr.length-1].pages+' sf';
+    const tg=Object.entries(gmap).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('xG').textContent=tg.length?tg[0][0]:'-';
+    const rb=bs.filter(b=>b.rating>0),rg={};
+    rb.forEach(b=>{if(b.genre){rg[b.genre]=rg[b.genre]||[];rg[b.genre].push(b.rating);}});
+    const avgs=Object.entries(rg).map(([g,rs])=>[g,rs.reduce((a,b)=>a+b,0)/rs.length]).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('xSG').textContent=avgs.length?avgs[0][0]:'-';
+  }
+}
+
+// CONFETTI
+function confetti(){
+  const cols=['#c8861a','#e8a830','#8b5e3c','#5c7a4e','#3a6b8a','#f5ede0'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('div');el.className='cnf';
+    const sz=6+Math.random()*8;
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[~~(Math.random()*cols.length)]};width:${sz}px;height:${sz}px;border-radius:${Math.random()>.5?'50%':'3px'};animation-delay:${Math.random()*.6}s;animation-duration:${1.5+Math.random()}s;`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),2700);
+  }
+}
+
+// DARK
+function togDark(){
+  const on=document.documentElement.hasAttribute('data-dark');
+  on?document.documentElement.removeAttribute('data-dark'):document.documentElement.setAttribute('data-dark','');
+  document.getElementById('darkBtn').textContent=on?'🌙':'☀️';
+  localStorage.setItem('bk_dark',on?'':'1');
+}
+
+// BOOT
+ld();initYr();
+if(localStorage.getItem('bk_dark')==='1'){document.documentElement.setAttribute('data-dark','');document.getElementById('darkBtn').textContent='☀️';}
+renderHome();
+</script>
+</body>
+</html>
