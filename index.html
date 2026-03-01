@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Babamın Kitaplığı</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Crimson+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --cream: #f7f2e8;
+    --parchment: #ede4d0;
+    --leather: #8b5e3c;
+    --dark-leather: #5c3d1e;
+    --gold: #c9952a;
+    --gold-light: #e8b84b;
+    --ink: #1a1008;
+    --shadow-brown: rgba(92,61,30,0.15);
+    --wood: #a0724a;
+    --page: #faf7f0;
+  }
+  [data-theme="dark"] {
+    --cream: #1a1208;
+    --parchment: #231a0f;
+    --leather: #c9952a;
+    --dark-leather: #e8b84b;
+    --gold: #e8b84b;
+    --gold-light: #f5d07a;
+    --ink: #f7f2e8;
+    --shadow-brown: rgba(0,0,0,0.4);
+    --wood: #c9952a;
+    --page: #1f1509;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Crimson Pro', serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+  /* HEADER */
+  header {
+    background: var(--dark-leather);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    min-height: 70px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--gold-light);
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+  .logo span { color: #fff; font-style: normal; font-size: 0.85rem; display: block; font-family: 'Crimson Pro', serif; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+  nav { display: flex; gap: 0.25rem; }
+  nav button {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.65);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+  nav button:hover { color: var(--gold-light); background: rgba(255,255,255,0.08); }
+  nav button.active { color: var(--gold-light); background: rgba(201,149,42,0.2); }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .theme-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .theme-btn:hover { background: rgba(255,255,255,0.2); }
+  /* LEVEL BADGE */
+  .level-badge {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--ink);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  /* TABS */
+  .tab { display: none; }
+  .tab.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  /* HOME */
+  .home-hero {
+    background: linear-gradient(135deg, var(--dark-leather) 0%, var(--leather) 100%);
+    border-radius: 16px;
+    padding: 2.5rem;
+    color: white;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-hero::before {
+    content: '📚';
+    position: absolute;
+    right: 2rem; top: 50%;
+    transform: translateY(-50%);
+    font-size: 6rem;
+    opacity: 0.15;
+  }
+  .home-hero h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 0.5rem; }
+  .home-hero p { opacity: 0.8; font-size: 1.1rem; }
+  /* XP BAR */
+  .xp-section { margin-top: 1.5rem; }
+  .xp-label { display: flex; justify-content: space-between; font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.5rem; }
+  .xp-bar { background: rgba(255,255,255,0.2); border-radius: 20px; height: 10px; overflow: hidden; }
+  .xp-fill {
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    height: 100%;
+    border-radius: 20px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--page);
+    border: 1px solid var(--parchment);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 12px var(--shadow-brown);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px var(--shadow-brown); }
+  .stat-card .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: var(--leather);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .stat-card .lbl { font-size: 0.9rem; color: var(--wood); opacity: 0.8; }
+  /* RECENT BOOKS */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--dark-leather);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  [data-theme="dark"] .section-title { color: var(--gold-light); }
+  .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  /* BOOK CARD */
+  .book-card {
+    background: var(--page);
+    border: 1px solid var(--parchment);
+    border-left: 4px solid var(--gold);
+    border-radius: 10px;
+    padding: 1.2rem;
+    box-shadow: 0 2px 10px var(--shadow-brown);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .book-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px var(--shadow-brown); }
+  .book-card .genre-tag {
+    display: inline-block;
+    background: var(--parchment);
+    color: var(--wood);
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .book-card h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 0.2rem; color: var(--ink); }
+  .book-card .author { font-size: 0.9rem; color: var(--wood); margin-bottom: 0.6rem; font-style: italic; }
+  .book-card .meta { font-size: 0.82rem; color: var(--wood); display: flex; gap: 1rem; flex-wrap: wrap; }
+  .book-card .stars { color: var(--gold); letter-spacing: -2px; }
+  .book-card .actions { position: absolute; top: 0.8rem; right: 0.8rem; display: flex; gap: 0.3rem; opacity: 0; transition: opacity 0.2s; }
+  .book-card:hover .actions { opacity: 1; }
+  .icon-btn {
+    background: var(--parchment);
+    border: none;
+    border-radius: 6px;
+    width: 28px; height: 28px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .icon-btn:hover { background: var(--leather); color: white; }
+  /* FORM */
+  .form-card {
+    background: var(--page);
+    border: 1px solid var(--parchment);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px var(--shadow-brown);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; font-size: 0.9rem; color: var(--wood); margin-bottom: 0.4rem; font-weight: 600; letter-spacing: 0.03em; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--cream);
+    border: 1px solid var(--parchment);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,149,42,0.15);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .star-input { display: flex; gap: 0.4rem; }
+  .star-input label {
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: var(--parchment);
+    transition: color 0.15s;
+    margin: 0;
+  }
+  .star-input input { display: none; }
+  .star-input label:hover, .star-input label.lit { color: var(--gold); }
+  .submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--dark-leather), var(--leather));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.9rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(92,61,30,0.3);
+  }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(92,61,30,0.4); }
+  /* ACHIEVEMENTS */
+  .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+  .badge-card {
+    background: var(--page);
+    border: 2px solid var(--parchment);
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .badge-card.earned {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, var(--page), rgba(201,149,42,0.05));
+    box-shadow: 0 4px 16px rgba(201,149,42,0.2);
+  }
+  .badge-card.locked { opacity: 0.4; filter: grayscale(1); }
+  .badge-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+  .badge-name { font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--ink); margin-bottom: 0.3rem; }
+  .badge-desc { font-size: 0.78rem; color: var(--wood); }
+  /* CHART */
+  .chart-container {
+    background: var(--page);
+    border: 1px solid var(--parchment);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px var(--shadow-brown);
+    margin-bottom: 1.5rem;
+  }
+  /* MODAL / CELEBRATION */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--page);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  @keyframes popIn {
+    from { opacity:0; transform: scale(0.6); }
+    to { opacity:1; transform: scale(1); }
+  }
+  .modal .big-emoji { font-size: 4rem; display: block; margin-bottom: 1rem; }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--dark-leather); margin-bottom: 0.5rem; }
+  [data-theme="dark"] .modal h2 { color: var(--gold-light); }
+  .modal p { color: var(--wood); margin-bottom: 1.5rem; font-size: 1.05rem; }
+  .modal-btn {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 2rem;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink);
+    transition: transform 0.15s;
+  }
+  .modal-btn:hover { transform: scale(1.05); }
+  /* CONFETTI */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: confettiFall 2s ease-in forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity:1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
+  }
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 3rem; color: var(--wood); opacity: 0.6; }
+  .empty .emoji { font-size: 3rem; display: block; margin-bottom: 1rem; }
+  /* YEAR SELECTOR */
+  .year-select {
+    background: var(--parchment);
+    border: 1px solid var(--parchment);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    cursor: pointer;
+    outline: none;
+  }
+  /* SEARCH */
+  .search-bar {
+    display: flex; gap: 0.8rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .search-bar input, .search-bar select {
+    background: var(--page);
+    border: 1px solid var(--parchment);
+    border-radius: 8px;
+    padding: 0.55rem 0.9rem;
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input { flex: 1; min-width: 180px; }
+  .search-bar input:focus, .search-bar select:focus { border-color: var(--gold); }
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    nav button { padding: 0.4rem 0.6rem; font-size: 0.85rem; }
+    .logo { font-size: 1.1rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .home-hero h1 { font-size: 1.4rem; }
+    main { padding: 1rem; }
+  }
+  .notes-text { font-size: 0.85rem; color: var(--wood); font-style: italic; margin-top: 0.4rem; border-top: 1px solid var(--parchment); padding-top: 0.4rem; }
+  .no-books { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    Babamın Kitaplığı
+    <span>📖 Okuma Günlüğü</span>
+  </div>
+  <nav>
+    <button class="active" onclick="showTab('home',this)">Ana Sayfa</button>
+    <button onclick="showTab('add',this)">+ Kitap Ekle</button>
+    <button onclick="showTab('library',this)">Kütüphane</button>
+    <button onclick="showTab('achievements',this)">Başarımlar</button>
+    <button onclick="showTab('stats',this)">İstatistikler</button>
+  </nav>
+  <div class="header-right">
+    <span class="level-badge" id="headerLevel">Lv.1 Meraklı</span>
+    <select class="year-select" id="yearSelect" onchange="changeYear()"></select>
+    <button class="theme-btn" onclick="toggleTheme()" title="Tema Değiştir">🌙</button>
+  </div>
+</header>
+
+<main>
+  <!-- HOME TAB -->
+  <div class="tab active" id="tab-home">
+    <div class="home-hero">
+      <h1 id="heroTitle">Merhaba, Okuyucu! 👋</h1>
+      <p id="heroSub">Bu yılki okuma yolculuğuna hoş geldin.</p>
+      <div class="xp-section">
+        <div class="xp-label">
+          <span id="xpText">0 / 100 XP</span>
+          <span id="levelLabel">Seviye 1 — Meraklı Okuyucu</span>
+        </div>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="statBooks">0</div><div class="lbl">Okunan Kitap</div></div>
+      <div class="stat-card"><div class="num" id="statPages">0</div><div class="lbl">Toplam Sayfa</div></div>
+      <div class="stat-card"><div class="num" id="statXP">0</div><div class="lbl">Toplam XP</div></div>
+      <div class="stat-card"><div class="num" id="statAvg">0</div><div class="lbl">Ort. Sayfa/Kitap</div></div>
+    </div>
+    <div class="section-title">📖 Son Eklenen Kitaplar</div>
+    <div class="books-grid" id="recentBooks"></div>
+    <div class="empty no-books" id="emptyHome"><span class="emoji">📚</span>Henüz kitap eklenmedi. İlk kitabını ekle!</div>
+  </div>
+
+  <!-- ADD TAB -->
+  <div class="tab" id="tab-add">
+    <div class="form-card">
+      <div class="section-title" style="margin-bottom:1.5rem">✍️ Yeni Kitap Ekle</div>
+      <div class="form-row">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Kitap Adı *</label>
+          <input type="text" id="fTitle" placeholder="Kitabın adını gir..." />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Yazar *</label>
+          <input type="text" id="fAuthor" placeholder="Yazar adı..." />
+        </div>
+        <div class="form-group">
+          <label>Sayfa Sayısı *</label>
+          <input type="number" id="fPages" placeholder="0" min="1" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tür</label>
+          <select id="fGenre">
+            <option value="">Seç...</option>
+            <option>Roman</option>
+            <option>Tarih</option>
+            <option>Bilim</option>
+            <option>Felsefe</option>
+            <option>Biyografi</option>
+            <option>Din & Maneviyat</option>
+            <option>Kişisel Gelişim</option>
+            <option>Polisiye</option>
+            <option>Şiir</option>
+            <option>Diğer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Puan</label>
+          <div class="star-input" id="starInput">
+            <input type="radio" name="rating" id="s5" value="5"><label for="s5">★</label>
+            <input type="radio" name="rating" id="s4" value="4"><label for="s4">★</label>
+            <input type="radio" name="rating" id="s3" value="3"><label for="s3">★</label>
+            <input type="radio" name="rating" id="s2" value="2"><label for="s2">★</label>
+            <input type="radio" name="rating" id="s1" value="1"><label for="s1">★</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Başlangıç Tarihi</label>
+          <input type="date" id="fStart" />
+        </div>
+        <div class="form-group">
+          <label>Bitiş Tarihi</label>
+          <input type="date" id="fEnd" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notlar / Düşünceler</label>
+        <textarea id="fNotes" placeholder="Bu kitap hakkında düşüncelerini yaz..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="addBook()" id="submitBtn">📚 Kitabı Kaydet</button>
+      <input type="hidden" id="editId" value="">
+    </div>
+  </div>
+
+  <!-- LIBRARY TAB -->
+  <div class="tab" id="tab-library">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍 Kitap veya yazar ara..." oninput="renderLibrary()" />
+      <select id="filterGenre" onchange="renderLibrary()">
+        <option value="">Tüm Türler</option>
+        <option>Roman</option><option>Tarih</option><option>Bilim</option>
+        <option>Felsefe</option><option>Biyografi</option><option>Din & Maneviyat</option>
+        <option>Kişisel Gelişim</option><option>Polisiye</option><option>Şiir</option><option>Diğer</option>
+      </select>
+      <select id="filterSort" onchange="renderLibrary()">
+        <option value="newest">En Yeni</option>
+        <option value="oldest">En Eski</option>
+        <option value="pages">En Çok Sayfa</option>
+        <option value="rating">En Yüksek Puan</option>
+      </select>
+    </div>
+    <div class="books-grid" id="libraryBooks"></div>
+    <div class="empty" id="emptyLib" style="display:none"><span class="emoji">🔍</span>Sonuç bulunamadı.</div>
+  </div>
+
+  <!-- ACHIEVEMENTS TAB -->
+  <div class="tab" id="tab-achievements">
+    <div class="section-title">🏆 Başarımlar & Rozetler</div>
+    <div class="badges-grid" id="badgesGrid"></div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div class="tab" id="tab-stats">
+    <div class="chart-container">
+      <div class="section-title">📊 Aylara Göre Kitap Sayısı</div>
+      <canvas id="monthChart" height="100"></canvas>
+    </div>
+    <div class="chart-container">
+      <div class="section-title">📖 Türlere Göre Dağılım</div>
+      <canvas id="genreChart" height="120"></canvas>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="sStar">-</div><div class="lbl">En Yüksek Puan Türü</div></div>
+      <div class="stat-card"><div class="num" id="sTopGenre">-</div><div class="lbl">En Çok Okunan Tür</div></div>
+      <div class="stat-card"><div class="num" id="sLongest">-</div><div class="lbl">En Uzun Kitap (sayfa)</div></div>
+      <div class="stat-card"><div class="num" id="sShortest">-</div><div class="lbl">En Kısa Kitap (sayfa)</div></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="big-emoji" id="modalEmoji">🎉</span>
+    <h2 id="modalTitle">Tebrikler!</h2>
+    <p id="modalMsg">Harika bir başarı!</p>
+    <button class="modal-btn" onclick="closeModal()">Süper! ✨</button>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+let currentYear = new Date().getFullYear();
+let db = {};
+let pendingMilestones = [];
+let editingId = null;
+
+const GENRES_COLORS = {
+  'Roman':'#8b5e3c','Tarih':'#5c7a4e','Bilim':'#3a6b8a','Felsefe':'#7a4e8b',
+  'Biyografi':'#8a6b3a','Din & Maneviyat':'#6b8a5c','Kişisel Gelişim':'#8a5c6b',
+  'Polisiye':'#4e5c7a','Şiir':'#8a7a4e','Diğer':'#6b6b6b','':`#a0724a`
+};
+
+const LEVELS = [
+  {min:0, max:100, name:'Meraklı Okuyucu', short:'Meraklı'},
+  {min:101, max:300, name:'Kitap Kurdu', short:'Kitap Kurdu'},
+  {min:301, max:600, name:'Bilge', short:'Bilge'},
+  {min:601, max:1000, name:'Büyük Üstad', short:'Üstad'},
+  {min:1001, max:Infinity, name:'Efsanevi Okuyucu', short:'Efsane'},
+];
+
+const PAGE_MILESTONES = [
+  {pages:100, emoji:'📖', name:'İlk Adım!', desc:'100 sayfa okudun!'},
+  {pages:500, emoji:'📚', name:'Okuma Ateşi!', desc:'500 sayfa okudun!'},
+  {pages:1000, emoji:'🔥', name:'Bin Sayfa Ustası!', desc:'1000 sayfa okudun!'},
+  {pages:2500, emoji:'🏆', name:'Sayfa Avcısı!', desc:'2500 sayfa okudun!'},
+  {pages:5000, emoji:'👑', name:'Efsane Okuyucu!', desc:'5000 sayfa okudun!'},
+  {pages:10000, emoji:'🌟', name:'10.000 Sayfa Efsanesi!', desc:'10.000 sayfa okudun!'},
+];
+
+const BOOK_MILESTONES = [
+  {count:1, emoji:'🌱', name:'İlk Kitabım!', desc:'İlk kitabını ekledin!'},
+  {count:5, emoji:'📗', name:'Seri Okuyucu!', desc:'5 kitap okudun!'},
+  {count:10, emoji:'📘', name:'Çift Haneli!', desc:'10 kitap okudun!'},
+  {count:25, emoji:'📕', name:'Kitap Koleksiyoncusu!', desc:'25 kitap okudun!'},
+  {count:52, emoji:'🎯', name:'Haftada Bir Kitap!', desc:'52 kitap okudun!'},
+];
+
+// ===================== INIT =====================
+function loadData() {
+  const raw = localStorage.getItem('babakitap_db');
+  db = raw ? JSON.parse(raw) : {};
+}
+function saveData() {
+  localStorage.setItem('babakitap_db', JSON.stringify(db));
+}
+function getYearData(y) {
+  if (!db[y]) db[y] = { books: [], earnedBadges: [] };
+  return db[y];
+}
+function getBooks() { return getYearData(currentYear).books; }
+function getEarned() { return getYearData(currentYear).earnedBadges; }
+
+function initYearSelect() {
+  const sel = document.getElementById('yearSelect');
+  sel.innerHTML = '';
+  const start = 2023, end = 2027;
+  for (let y = end; y >= start; y--) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    if (y === currentYear) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+function changeYear() {
+  currentYear = parseInt(document.getElementById('yearSelect').value);
+  refreshAll();
+}
+
+// ===================== TABS =====================
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'library') renderLibrary();
+  if (id === 'achievements') renderBadges();
+  if (id === 'stats') renderStats();
+  if (id === 'home') renderHome();
+}
+
+// ===================== BOOK CRUD =====================
+function addBook() {
+  const title = document.getElementById('fTitle').value.trim();
+  const author = document.getElementById('fAuthor').value.trim();
+  const pages = parseInt(document.getElementById('fPages').value);
+  if (!title || !author || !pages) { alert('Kitap adı, yazar ve sayfa sayısı zorunludur!'); return; }
+
+  const ratingEl = document.querySelector('input[name="rating"]:checked');
+  const rating = ratingEl ? parseInt(ratingEl.value) : 0;
+
+  const book = {
+    id: editingId || Date.now().toString(),
+    title, author, pages,
+    genre: document.getElementById('fGenre').value,
+    rating,
+    start: document.getElementById('fStart').value,
+    end: document.getElementById('fEnd').value,
+    notes: document.getElementById('fNotes').value.trim(),
+    addedAt: Date.now()
+  };
+
+  const yd = getYearData(currentYear);
+  if (editingId) {
+    const idx = yd.books.findIndex(b => b.id === editingId);
+    if (idx >= 0) yd.books[idx] = book;
+    editingId = null;
+    document.getElementById('submitBtn').textContent = '📚 Kitabı Kaydet';
+  } else {
+    yd.books.push(book);
+    checkMilestones(yd);
+  }
+  saveData();
+  resetForm();
+  refreshAll();
+  showTab('home', document.querySelector('nav button'));
+  showPendingMilestones();
+}
+
+function checkMilestones(yd) {
+  const books = yd.books;
+  const total = books.reduce((s,b) => s + b.pages, 0);
+  const count = books.length;
+  const earned = yd.earnedBadges;
+
+  PAGE_MILESTONES.forEach(m => {
+    const key = 'page_' + m.pages;
+    if (total >= m.pages && !earned.includes(key)) {
+      earned.push(key);
+      pendingMilestones.push(m);
+    }
+  });
+  BOOK_MILESTONES.forEach(m => {
+    const key = 'book_' + m.count;
+    if (count >= m.count && !earned.includes(key)) {
+      earned.push(key);
+      pendingMilestones.push(m);
+    }
+  });
+  // Level milestone
+  const xp = calcXP(books);
+  const lv = getLevel(xp);
+  const lvKey = 'level_' + lv.name;
+  if (!earned.includes(lvKey)) {
+    earned.push(lvKey);
+    if (lv.name !== 'Meraklı Okuyucu') {
+      pendingMilestones.push({emoji:'⭐', name:'Yeni Seviye!', desc: lv.name + ' oldun!'});
+    }
+  }
+}
+
+function showPendingMilestones() {
+  if (pendingMilestones.length === 0) return;
+  const m = pendingMilestones.shift();
+  confetti();
+  document.getElementById('modalEmoji').textContent = m.emoji;
+  document.getElementById('modalTitle').textContent = m.name;
+  document.getElementById('modalMsg').textContent = m.desc;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('show');
+  setTimeout(showPendingMilestones, 300);
+}
+
+function editBook(id) {
+  const book = getBooks().find(b => b.id === id);
+  if (!book) return;
+  editingId = id;
+  document.getElementById('fTitle').value = book.title;
+  document.getElementById('fAuthor').value = book.author;
+  document.getElementById('fPages').value = book.pages;
+  document.getElementById('fGenre').value = book.genre || '';
+  document.getElementById('fStart').value = book.start || '';
+  document.getElementById('fEnd').value = book.end || '';
+  document.getElementById('fNotes').value = book.notes || '';
+  if (book.rating) {
+    const r = document.getElementById('s' + book.rating);
+    if (r) r.checked = true;
+    updateStars();
+  }
+  document.getElementById('submitBtn').textContent = '✏️ Güncelle';
+  showTab('add', document.querySelectorAll('nav button')[1]);
+}
+
+function deleteBook(id) {
+  if (!confirm('Bu kitabı silmek istediğinden emin misin?')) return;
+  const yd = getYearData(currentYear);
+  yd.books = yd.books.filter(b => b.id !== id);
+  saveData();
+  refreshAll();
+}
+
+function resetForm() {
+  ['fTitle','fAuthor','fPages','fStart','fEnd','fNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fGenre').value = '';
+  document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+  updateStars();
+  editingId = null;
+}
+
+// ===================== XP & LEVEL =====================
+function calcXP(books) {
+  return books.reduce((s,b) => s + 10 + Math.floor(b.pages / 10), 0);
+}
+function getLevel(xp) {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (xp >= LEVELS[i].min) return LEVELS[i];
+  }
+  return LEVELS[0];
+}
+
+// ===================== RENDER HOME =====================
+function renderHome() {
+  const books = getBooks();
+  const total = books.reduce((s,b) => s + b.pages, 0);
+  const xp = calcXP(books);
+  const lv = getLevel(xp);
+  const lvIdx = LEVELS.indexOf(lv);
+  const nextLv = LEVELS[lvIdx + 1];
+  const pct = nextLv ? Math.min(100, ((xp - lv.min) / (nextLv.min - lv.min)) * 100) : 100;
+
+  document.getElementById('statBooks').textContent = books.length;
+  document.getElementById('statPages').textContent = total.toLocaleString('tr');
+  document.getElementById('statXP').textContent = xp;
+  document.getElementById('statAvg').textContent = books.length ? Math.round(total / books.length) : 0;
+  document.getElementById('xpText').textContent = nextLv ? `${xp} / ${nextLv.min} XP` : `${xp} XP (Maks!)`;
+  document.getElementById('levelLabel').textContent = `Seviye ${lvIdx + 1} — ${lv.name}`;
+  document.getElementById('headerLevel').textContent = `Lv.${lvIdx+1} ${lv.short}`;
+  setTimeout(() => document.getElementById('xpFill').style.width = pct + '%', 100);
+
+  const recent = [...books].sort((a,b) => b.addedAt - a.addedAt).slice(0, 6);
+  const container = document.getElementById('recentBooks');
+  const emptyEl = document.getElementById('emptyHome');
+  if (books.length === 0) {
+    container.innerHTML = '';
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    container.innerHTML = recent.map(b => bookCardHTML(b)).join('');
+  }
+}
+
+function bookCardHTML(b) {
+  const stars = '★'.repeat(b.rating) + '☆'.repeat(5 - b.rating);
+  const color = GENRES_COLORS[b.genre] || '#a0724a';
+  return `<div class="book-card" style="border-left-color:${color}">
+    <div class="actions">
+      <button class="icon-btn" onclick="editBook('${b.id}')" title="Düzenle">✏️</button>
+      <button class="icon-btn" onclick="deleteBook('${b.id}')" title="Sil">🗑️</button>
+    </div>
+    ${b.genre ? `<span class="genre-tag">${b.genre}</span>` : ''}
+    <h3>${b.title}</h3>
+    <div class="author">${b.author}</div>
+    <div class="meta">
+      <span>📄 ${b.pages} sayfa</span>
+      ${b.rating ? `<span class="stars">${stars}</span>` : ''}
+      ${b.end ? `<span>🗓️ ${b.end}</span>` : ''}
+    </div>
+    ${b.notes ? `<div class="notes-text">${b.notes.slice(0,80)}${b.notes.length>80?'...':''}</div>` : ''}
+  </div>`;
+}
+
+// ===================== RENDER LIBRARY =====================
+function renderLibrary() {
+  let books = [...getBooks()];
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  const genre = document.getElementById('filterGenre').value;
+  const sort = document.getElementById('filterSort').value;
+
+  if (q) books = books.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+  if (genre) books = books.filter(b => b.genre === genre);
+  if (sort === 'newest') books.sort((a,b) => b.addedAt - a.addedAt);
+  else if (sort === 'oldest') books.sort((a,b) => a.addedAt - b.addedAt);
+  else if (sort === 'pages') books.sort((a,b) => b.pages - a.pages);
+  else if (sort === 'rating') books.sort((a,b) => b.rating - a.rating);
+
+  const container = document.getElementById('libraryBooks');
+  const empty = document.getElementById('emptyLib');
+  if (books.length === 0) { container.innerHTML=''; empty.style.display='block'; }
+  else { empty.style.display='none'; container.innerHTML = books.map(b => bookCardHTML(b)).join(''); }
+}
+
+// ===================== RENDER BADGES =====================
+function renderBadges() {
+  const earned = getEarned();
+  const all = [
+    ...BOOK_MILESTONES.map(m => ({...m, key:'book_'+m.count})),
+    ...PAGE_MILESTONES.map(m => ({...m, key:'page_'+m.pages})),
+    ...LEVELS.slice(1).map((lv,i) => ({emoji:'⭐', name:'Seviye '+(i+2)+': '+lv.name, desc:lv.min+' XP ile ulaşıldı!', key:'level_'+lv.name}))
+  ];
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = all.map(b => `
+    <div class="badge-card ${earned.includes(b.key) ? 'earned' : 'locked'}">
+      <span class="badge-emoji">${b.emoji}</span>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+    </div>
+  `).join('');
+}
+
+// ===================== RENDER STATS =====================
+let monthChartInst, genreChartInst;
+function renderStats() {
+  const books = getBooks();
+  const months = Array(12).fill(0);
+  const genreMap = {};
+  books.forEach(b => {
+    const d = b.end || b.start;
+    if (d) { const m = parseInt(d.split('-')[1]) - 1; months[m]++; }
+    if (b.genre) genreMap[b.genre] = (genreMap[b.genre]||0) + 1;
+  });
+
+  const MONTH_NAMES = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+  const txtColor = isDark ? '#e8d5b0' : '#5c3d1e';
+
+  if (monthChartInst) monthChartInst.destroy();
+  monthChartInst = new Chart(document.getElementById('monthChart'), {
+    type: 'bar',
+    data: {
+      labels: MONTH_NAMES,
+      datasets: [{ label:'Kitap Sayısı', data: months,
+        backgroundColor: 'rgba(201,149,42,0.7)', borderColor: '#c9952a',
+        borderWidth: 2, borderRadius: 6 }]
+    },
+    options: { plugins:{legend:{display:false}}, scales:{
+      x:{ grid:{color:gridColor}, ticks:{color:txtColor} },
+      y:{ grid:{color:gridColor}, ticks:{color:txtColor, stepSize:1} }
+    }}
+  });
+
+  if (genreChartInst) genreChartInst.destroy();
+  const gKeys = Object.keys(genreMap);
+  if (gKeys.length > 0) {
+    genreChartInst = new Chart(document.getElementById('genreChart'), {
+      type: 'doughnut',
+      data: {
+        labels: gKeys,
+        datasets: [{ data: gKeys.map(k => genreMap[k]),
+          backgroundColor: gKeys.map(k => GENRES_COLORS[k] || '#a0724a'),
+          borderWidth: 2, borderColor: isDark ? '#1a1208' : '#faf7f0'
+        }]
+      },
+      options: { plugins:{legend:{labels:{color:txtColor}}} }
+    });
+  }
+
+  // extra stats
+  if (books.length) {
+    const sorted = [...books].sort((a,b) => b.pages - a.pages);
+    document.getElementById('sLongest').textContent = sorted[0].pages;
+    document.getElementById('sShortest').textContent = sorted[sorted.length-1].pages;
+    const tg = Object.entries(genreMap).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('sTopGenre').textContent = tg.length ? tg[0][0] : '-';
+    const ratedBooks = books.filter(b => b.rating > 0);
+    if (ratedBooks.length) {
+      const rg = {};
+      ratedBooks.forEach(b => { if(b.genre){rg[b.genre]=(rg[b.genre]||[]);rg[b.genre].push(b.rating);} });
+      const avgs = Object.entries(rg).map(([g,rs])=>([g, rs.reduce((a,b)=>a+b,0)/rs.length])).sort((a,b)=>b[1]-a[1]);
+      document.getElementById('sStar').textContent = avgs.length ? avgs[0][0] : '-';
+    }
+  }
+}
+
+// ===================== CONFETTI =====================
+function confetti() {
+  const colors = ['#c9952a','#e8b84b','#8b5e3c','#5c7a4e','#3a6b8a','#f7f2e8'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `left:${Math.random()*100}vw;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-delay:${Math.random()*0.5}s;animation-duration:${1.5+Math.random()*1}s;`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+}
+
+// ===================== STAR INTERACTION =====================
+function updateStars() {
+  const labels = document.querySelectorAll('.star-input label');
+  const checked = document.querySelector('input[name="rating"]:checked');
+  const val = checked ? parseInt(checked.value) : 0;
+  labels.forEach(lbl => {
+    const forVal = parseInt(lbl.getAttribute('for').replace('s',''));
+    lbl.classList.toggle('lit', forVal <= val);
+  });
+}
+document.querySelectorAll('input[name="rating"]').forEach(r => r.addEventListener('change', updateStars));
+
+// ===================== THEME =====================
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  document.querySelector('.theme-btn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('babakitap_theme', isDark ? 'light' : 'dark');
+}
+
+// ===================== REFRESH ALL =====================
+function refreshAll() {
+  renderHome();
+}
+
+// ===================== BOOT =====================
+loadData();
+initYearSelect();
+const savedTheme = localStorage.getItem('babakitap_theme');
+if (savedTheme === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  document.querySelector('.theme-btn').textContent = '☀️';
+}
+refreshAll();
+</script>
+</body>
+</html>
